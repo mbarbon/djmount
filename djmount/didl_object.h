@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-#include <upnp/ixml.h>
+#include <ixml.h>
 
 
 

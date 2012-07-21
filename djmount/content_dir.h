@@ -31,8 +31,8 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <upnp/ixml.h>
-#include <upnp/ithread.h>
+#include <ixml.h>
+#include <ithread.h>
 
 #include "service.h"
 #include "ptr_array.h"

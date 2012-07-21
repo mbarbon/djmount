@@ -30,7 +30,7 @@
 #include "xml_util.h"
 #include <string.h>
 #include <inttypes.h>
-#include <upnp/upnp.h>
+#include <upnp.h>
 #include "service_p.h"
 #include "cache.h"
 #include "log.h"

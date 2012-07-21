@@ -28,7 +28,7 @@
 #include "service.h"
 #include "object_p.h"
 
-#include <upnp/LinkedList.h>
+#include <LinkedList.h>
 
 
 /******************************************************************************

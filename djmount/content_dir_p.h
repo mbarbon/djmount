@@ -26,7 +26,7 @@
 
 #include "content_dir.h"
 #include "service_p.h"
-#include <upnp/ithread.h>
+#include <ithread.h>
 
 
 /******************************************************************************

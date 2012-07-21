@@ -25,7 +25,7 @@
 #include "log.h"
 #include <stdarg.h>
 #include <stdio.h>
-#include <upnp/ithread.h>
+#include <ithread.h>
 #include <stdbool.h>
 
 

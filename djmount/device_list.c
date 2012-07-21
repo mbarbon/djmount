@@ -36,10 +36,10 @@
 #include "talloc_util.h"
 
 #include <stdbool.h>
-#include <upnp/upnp.h>
-#include <upnp/ithread.h>
-#include <upnp/upnptools.h>
-#include <upnp/LinkedList.h>
+#include <upnp.h>
+#include <ithread.h>
+#include <upnptools.h>
+#include <LinkedList.h>
 
 
 

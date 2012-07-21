@@ -30,7 +30,7 @@
 #include "talloc_util.h"
 #include "string_util.h"
 
-#include <upnp/ixml.h>
+#include <ixml.h>
 #include <stdlib.h>	
 
 

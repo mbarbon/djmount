@@ -34,8 +34,8 @@
 #include <errno.h>
 #include <inttypes.h>	// Import intmax_t and PRIdMAX
 
-#include <upnp/upnp.h>
-#include <upnp/upnptools.h>
+#include <upnp.h>
+#include <upnptools.h>
 
 
 // Same definition as in "libupnp/upnp/src/inc/httpreadwrite.h"

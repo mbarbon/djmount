@@ -34,8 +34,8 @@
 #include "upnp_util.h"
 #include "talloc_util.h"
 
-#include <upnp/upnp.h>
-#include <upnp/upnptools.h>
+#include <upnp.h>
+#include <upnptools.h>
 
 #include "service_p.h"
 

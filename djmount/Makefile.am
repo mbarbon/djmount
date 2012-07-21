@@ -25,7 +25,7 @@ if INTERNAL_LIBUPNP
     # they are not installed
     UPNP_TMPINC		= @abs_builddir@/_upnp_temp_install
 
-    LIBUPNP_CFLAGS	+= -I$(UPNP_TMPINC)
+    LIBUPNP_CFLAGS	+= -I$(UPNP_TMPINC)/upnp
 
 endif
 

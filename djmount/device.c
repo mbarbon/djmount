@@ -37,8 +37,8 @@
 
 #include <time.h>
 #include <stdbool.h>
-#include <upnp/upnp.h>
-#include <upnp/LinkedList.h>
+#include <upnp.h>
+#include <LinkedList.h>
 
 
 

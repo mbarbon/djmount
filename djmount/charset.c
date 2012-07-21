@@ -44,7 +44,7 @@
 
 #ifdef HAVE_ICONV
 #	include <iconv.h>
-#	include <upnp/ithread.h>
+#	include <ithread.h>
 #else
 #	include "charset_internal.h"
 #endif

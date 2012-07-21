@@ -40,8 +40,8 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#include <upnp/upnp.h>
-#include <upnp/upnptools.h>
+#include <upnp.h>
+#include <upnptools.h>
 
 #ifdef HAVE_LIBREADLINE
 #	if defined(HAVE_READLINE_READLINE_H)

@@ -26,7 +26,7 @@
 #define DEVICE_LIST_INCLUDED 1
 
 
-#include <upnp/ixml.h>
+#include <ixml.h>
 
 #include "string_util.h"	// import StringPair
 #include "service.h"

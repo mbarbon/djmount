@@ -25,8 +25,8 @@
 #define DEVICE_INCLUDED 1
 
 
-#include <upnp/upnp.h>
-#include <upnp/ixml.h>
+#include <upnp.h>
+#include <ixml.h>
 
 #include "service.h"
 

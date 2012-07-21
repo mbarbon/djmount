@@ -259,9 +259,9 @@ if test x"$with_external_libupnp" = xyes; then
 	RT_PACKAGE_FIND([libupnp], [], [-lupnp -lthreadutil -lixml], 
 			[libupnp >= 1.3.1], 
 	[
-#	include <upnp/ixml.h>
-#	include <upnp/upnp.h>
-#	include <upnp/upnptools.h>
+#	include <ixml.h>
+#	include <upnp.h>
+#	include <upnptools.h>
 #if (!defined UPNP_VERSION) || (UPNP_VERSION < 10301)
 #	error libupnp version is too old
 #endif

@@ -27,7 +27,7 @@
 #define UPNP_UTIL_H_INCLUDED
 
 
-#include <upnp/upnptools.h>
+#include <upnptools.h>
 
 
 #ifdef __cplusplus

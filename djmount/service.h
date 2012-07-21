@@ -26,8 +26,8 @@
 
 #include <stdarg.h>
 
-#include <upnp/upnp.h>
-#include <upnp/ixml.h>
+#include <upnp.h>
+#include <ixml.h>
 
 #include "string_util.h"	// for StringPair
 #include "object.h"

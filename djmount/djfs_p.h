@@ -29,7 +29,7 @@
 #include "vfs_p.h"
 
 #include "ptr_array.h"
-#include <upnp/ithread.h>
+#include <ithread.h>
 
 
 /******************************************************************************

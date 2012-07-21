@@ -28,7 +28,7 @@
 
 #include <stdbool.h>
 #include <inttypes.h>
-#include <upnp/ixml.h>
+#include <ixml.h>
 
 
 #ifdef __cplusplus

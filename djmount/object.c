@@ -30,7 +30,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <upnp/ithread.h>
+#include <ithread.h>
 
 #include "log.h"
 #include "talloc_util.h"
