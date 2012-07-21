@@ -32,7 +32,12 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
-#include <sys/statfs.h>
+#ifdef __APPLE__
+#	include <sys/param.h>
+#	include <sys/mount.h>
+#else
+#	include <sys/statfs.h>
+#endif
 #ifdef HAVE_SETXATTR
 #	include <sys/xattr.h>
 #endif
