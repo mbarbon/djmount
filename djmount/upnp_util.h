@@ -27,6 +27,7 @@
 #define UPNP_UTIL_H_INCLUDED
 
 
+#include <upnp.h>
 #include <upnptools.h>
 
 
