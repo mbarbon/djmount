@@ -3,7 +3,12 @@
 rm -fr autom4te.cache
 
 # reconstruct gnulib files, if gnulib-tool is available
-(type -f gnulib-tool) > /dev/null 2>&1 && gnulib-tool --import
+if (type -f gnulib-tool) > /dev/null 2>&1; then
+    gnulib-tool --import
+else
+    mkdir -p libupnp/config.aux
+    touch libupnp/config.aux/config.rpath
+fi
 
 # Equivalent to 
 #	aclocal 
