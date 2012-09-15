@@ -52,6 +52,7 @@ AC_PROG_CC
 gl_EARLY
 
 # build static libraries by default (for bundled libupnp and talloc)
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
 
