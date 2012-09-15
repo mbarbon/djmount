@@ -216,6 +216,11 @@ DeviceList_GetDeviceStatusString (void* talloc_context,
 				  const char* deviceName, bool debug);
 
 
+const char*
+DeviceList_GetServiceType (void* talloc_context,
+			   const char* deviceName, ...);
+
+
 /*****************************************************************************
  * @brief Call this function to initialize the UPnP library and start the 
  *	  Control Point.  
@@ -228,8 +233,7 @@ DeviceList_GetDeviceStatusString (void* talloc_context,
  * @return UPNP_E_SUCCESS if everything went well, else a UPNP error code
  *****************************************************************************/
 int 
-DeviceList_Start (const char* ssdp_target,
-		  DeviceList_EventCallback eventCallback);
+DeviceList_Start (DeviceList_EventCallback eventCallback, ...);
 
 
 /*****************************************************************************

@@ -293,7 +293,7 @@ process_command (const char* cmdline)
 	{
 		const ContentDir_BrowseResult* res = NULL;
 		DEVICE_LIST_CALL_SERVICE (res, strarg[1], 
-					  CONTENT_DIR_SERVICE_TYPE,
+					  CONTENT_DIR1_SERVICE_TYPE,
 					  ContentDir, Browse, 
 					  tmp_ctx, strarg[2],
 					  CONTENT_DIR_BROWSE_DIRECT_CHILDREN);
@@ -310,7 +310,7 @@ process_command (const char* cmdline)
 	case CMD_METADATA: {
 		const ContentDir_BrowseResult* res = NULL;
 		DEVICE_LIST_CALL_SERVICE (res, strarg[1], 
-					  CONTENT_DIR_SERVICE_TYPE,
+					  CONTENT_DIR1_SERVICE_TYPE,
 					  ContentDir, Browse,
 					  tmp_ctx, strarg[2],
 					  CONTENT_DIR_BROWSE_METADATA);
@@ -348,7 +348,7 @@ process_command (const char* cmdline)
 	case CMD_SEARCHCAP: {
 		const char* s;
 		DEVICE_LIST_CALL_SERVICE (s, strarg[1],
-					  CONTENT_DIR_SERVICE_TYPE,
+					  CONTENT_DIR1_SERVICE_TYPE,
 					  ContentDir, GetSearchCapabilities,
 					  NULL);
 		Log_Printf (LOG_MAIN, "SearchCapabilities='%s'", NN(s));
@@ -358,7 +358,7 @@ process_command (const char* cmdline)
 	case CMD_SEARCH: {
 		const ContentDir_BrowseResult* res = NULL;
 		DEVICE_LIST_CALL_SERVICE (res, strarg[1], 
-					  CONTENT_DIR_SERVICE_TYPE,
+					  CONTENT_DIR1_SERVICE_TYPE,
 					  ContentDir, Search, 
 					  tmp_ctx, strarg[2], strarg[3]);
 		if (res) {

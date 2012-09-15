@@ -89,10 +89,11 @@ ServiceFactory (Device* dev,
 	const char* const serviceType = XMLUtil_FindFirstElementValue
 		(XML_E2N (serviceDesc), "serviceType", false, true);
 
-	if ( serviceType && strcmp (serviceType, 
-				    CONTENT_DIR_SERVICE_TYPE) == 0 ) {
+	if ( serviceType &&
+	     (strcmp (serviceType, CONTENT_DIR1_SERVICE_TYPE) == 0 ||
+	      strcmp (serviceType, CONTENT_DIR2_SERVICE_TYPE) == 0)) {
 		serv = ContentDir_ToService 
-			(ContentDir_Create (dev, ctrlpt_handle, 
+			(ContentDir_Create (dev, ctrlpt_handle,
 					    serviceDesc, base_url));
 	} else {
 		serv = Service_Create (dev, ctrlpt_handle,

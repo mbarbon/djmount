@@ -41,6 +41,7 @@
 #include <upnptools.h>
 #include <LinkedList.h>
 
+#define SSDP_TARGETS 2
 
 
 // How often to check advertisement and subscription timeouts for devices
@@ -53,7 +54,7 @@ static UpnpClient_Handle g_ctrlpt_handle = -1;
 
 static ithread_t g_timer_thread;
 
-static char* g_ssdp_target = NULL;
+static char* g_ssdp_targets[SSDP_TARGETS];
 
 
 /*
@@ -284,6 +285,8 @@ DeviceList_RemoveAll (void)
 int
 DeviceList_RefreshAll (bool remove_all)
 {
+	int i;
+
 	if (remove_all)
 		(void) DeviceList_RemoveAll();
   
@@ -291,13 +294,17 @@ DeviceList_RefreshAll (bool remove_all)
 	 * Search for all 'target' providers,
 	 * waiting for up to 5 seconds for the response 
 	 */
-	Log_Printf (LOG_DEBUG, "RefreshAll target=%s", NN(g_ssdp_target));
-	int rc = UpnpSearchAsync (g_ctrlpt_handle, 5 /* seconds */, 
-				  g_ssdp_target, NULL);
-	if (UPNP_E_SUCCESS != rc) 
-		Log_Printf (LOG_ERROR, "Error sending search request %d", rc);
-	
-	return rc;
+	for (i = 0; i < SSDP_TARGETS && g_ssdp_targets[i]; ++i) {
+		Log_Printf (LOG_DEBUG, "RefreshAll target=%s", NN(g_ssdp_targets[i]));
+		int rc = UpnpSearchAsync (g_ctrlpt_handle, 5 /* seconds */, 
+					  g_ssdp_targets[i], NULL);
+		if (UPNP_E_SUCCESS != rc) {
+			Log_Printf (LOG_ERROR, "Error sending search request %d", rc);
+			return rc;
+		}
+	}
+
+	return UPNP_E_SUCCESS;
 }
 
 
@@ -427,19 +434,30 @@ AddDevice (const char* deviceId,
 		} else {
 			// If SSDP target specified, check that the device
 			// matches it.
-			if (strstr (g_ssdp_target, ":service:")) {
-				const Service* serv = Device_GetServiceFrom 
-					(devnode->d, g_ssdp_target, 
-					 FROM_SERVICE_TYPE, false);
-				if (serv == NULL) {
-					Log_Printf (LOG_DEBUG,
-						    "Discovered device Id=%s "
-						    "has no '%s' service : "
-						    "forgetting", NN(deviceId),
-						    g_ssdp_target);
-					talloc_free (devnode);
-					return; // ---------->
+			int found = 0, i;
+
+			for (i = 0; i < SSDP_TARGETS; ++i) {
+				const char *ssdp_target = g_ssdp_targets[i];
+
+				if (strstr (ssdp_target, ":service:")) {
+					const Service* serv = Device_GetServiceFrom 
+						(devnode->d, ssdp_target, 
+						 FROM_SERVICE_TYPE, false);
+
+					if (serv)
+						found = 1;
+				} else {
+					found = 1;
 				}
+			}
+
+			if (!found) {
+				Log_Printf (LOG_DEBUG,
+					    "Discovered device Id=%s "
+					    "has none of the required services : "
+					    "forgetting", NN(deviceId));
+				talloc_free (devnode);
+				return; // ---------->
 			}
 
 			// Relock the device list (and check that the same
@@ -878,6 +896,42 @@ DeviceList_GetDeviceStatusString (void* context, const char* deviceName,
 }
 
 
+
+
+const char*
+DeviceList_GetServiceType (void* talloc_context,
+			   const char* deviceName, ...)
+{
+	const char* p = NULL;
+	va_list args;
+
+	va_start(args, deviceName);
+
+	ithread_mutex_lock (&DeviceListMutex);
+	
+	DeviceNode* const devnode = GetDeviceNodeFromName (deviceName, true);
+	if (devnode) {
+		for (;;) {
+			const char *serviceName = va_arg(args, const char *);
+			if (!serviceName)
+				break;
+
+			if (Device_GetServiceFrom (devnode->d, serviceName,
+						   FROM_SERVICE_TYPE, false))
+			{
+				p = serviceName;
+				break;
+			}
+		}
+	}
+	
+	ithread_mutex_unlock (&DeviceListMutex);
+
+	va_end(args);
+
+	return p;
+}
+
 /*****************************************************************************
  * @fn	VerifyTimeouts
  *
@@ -965,16 +1019,45 @@ CheckSubscriptionsLoop (void* arg)
  * DeviceList_Start
  *****************************************************************************/
 int
-DeviceList_Start (const char* ssdp_target, 
-		  DeviceList_EventCallback eventCallback)
+DeviceList_Start (DeviceList_EventCallback eventCallback, ...)
 {
+	const char *ssdp_targets[SSDP_TARGETS];
+	va_list args;
+	int count, i;
+
+	memset(ssdp_targets, 0, sizeof(ssdp_targets));
+
+	va_start(args, eventCallback);
+
+	for (count = 0; count < SSDP_TARGETS + 1; ++count) {
+		const char *value = va_arg(args, const char *);
+
+		if (count < SSDP_TARGETS) {
+			ssdp_targets[count] = value;
+		} else if (value != NULL) {
+			va_end(args);
+
+			return UPNP_E_INVALID_ARGUMENT;
+		}
+	}
+
+	va_end(args);
+	count -= 1;
+
+	if (count == 0)
+		return UPNP_E_INVALID_PARAM;
+
 	// Cf. AddDevice : only some SSDP target are implemented 
-	if (ssdp_target == NULL || 
-	    (strcmp (ssdp_target, "ssdp:all") != 0 &&
-	     strstr (ssdp_target, ":service:") == NULL)) {
-		Log_Printf (LOG_ERROR, "DeviceList : invalid or not "
-			    "implemented SSDP target '%s", NN(ssdp_target));
-		return UPNP_E_INVALID_PARAM; // ---------->
+	for (i = 0; i < count; ++i) {
+		const char *ssdp_target = ssdp_targets[i];
+
+		if (ssdp_target == NULL || 
+		    (strcmp (ssdp_target, "ssdp:all") != 0 &&
+		     strstr (ssdp_target, ":service:") == NULL)) {
+			Log_Printf (LOG_ERROR, "DeviceList : invalid or not "
+				    "implemented SSDP target '%s", NN(ssdp_target));
+			return UPNP_E_INVALID_PARAM; // ---------->
+		}
 	}
 
 	int rc;
@@ -1024,7 +1107,9 @@ DeviceList_Start (const char* ssdp_target,
 	
 	Log_Printf (LOG_DEBUG, "Control Point Registered" );
 	
-	g_ssdp_target = talloc_strdup (NULL, ssdp_target);
+	for (i = 0; i < count; ++i)
+		if (ssdp_targets[i])
+			g_ssdp_targets[i] = talloc_strdup(NULL, ssdp_targets[i]);
 	DeviceList_RefreshAll (true);
 	
 	// start a timer thread
@@ -1040,7 +1125,7 @@ DeviceList_Start (const char* ssdp_target,
 int
 DeviceList_Stop (void)
 {
-	int rc;
+	int rc, i;
 	
 	/*
 	 * Reverse all "Start" operations
@@ -1049,8 +1134,10 @@ DeviceList_Stop (void)
 	ithread_cancel (g_timer_thread);
 	
 	DeviceList_RemoveAll();
-	talloc_free (g_ssdp_target);
-	g_ssdp_target = NULL;
+
+	for (i = 0; i < SSDP_TARGETS; ++i)
+		talloc_free (g_ssdp_targets[i]);
+	memset(g_ssdp_targets, 0, sizeof(g_ssdp_targets));
 
 	UpnpUnRegisterClient (g_ctrlpt_handle);
 	rc = UpnpFinish();

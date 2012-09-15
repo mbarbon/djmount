@@ -795,14 +795,14 @@ main (int argc, char *argv[])
 	 * Initialise UPnP Control point and starts FUSE file system
 	 */
 	
-	rc = DeviceList_Start (CONTENT_DIR_SERVICE_TYPE, NULL);
+	rc = DeviceList_Start (NULL, CONTENT_DIR1_SERVICE_TYPE,
+			       CONTENT_DIR2_SERVICE_TYPE, NULL);
 	if (rc != UPNP_E_SUCCESS) {
 		Log_Printf (LOG_ERROR, 
 			    "Error starting UPnP Control Point : %d (%s)",
 			    rc, UpnpGetErrorMessage (rc));
 		exit (rc); // ---------->
 	}
-	
 
 	fuse_argv[fuse_argc] = NULL; // End FUSE arguments list
 	rc = fuse_main (fuse_argc, fuse_argv, &fs_oper);

@@ -82,14 +82,16 @@ typedef struct _SearchHistory {
 static VFS_BrowseStatus
 BrowseChildren (DJFS* const self, const char* const sub_path,
 		const VFS_Query* const query, void* const tmp_ctx,
-		const char* const devName, const DIDLObject* const parent, 
+		const char* const devName, const char* const serType,
+		const DIDLObject* const parent, 
 		bool const searchable, const char* const search_criteria,
 		ContentDir_Children* const children);
 
 static VFS_BrowseStatus
 BrowseSearchDir (DJFS* const self, const char* const sub_path,
 		 const VFS_Query* const query, void* const tmp_ctx,
-		 const char* const devName, const DIDLObject* const parent, 
+		 const char* const devName, const char* const serType,
+		 const DIDLObject* const parent, 
 		 const char* const criteria_start)
 {
   // Keep a pointer to acquired lock, if any
@@ -105,7 +107,7 @@ BrowseSearchDir (DJFS* const self, const char* const sub_path,
     FILE_BEGIN ("search_capabilities") {
       const char* caps = NULL;
       DEVICE_LIST_CALL_SERVICE (caps, devName, 
-				CONTENT_DIR_SERVICE_TYPE,
+				serType,
 				ContentDir, GetSearchCapabilities, NULL);
       if (caps && *caps) {
 	char* const str = talloc_asprintf (tmp_ctx, "%s\n", caps);
@@ -140,12 +142,12 @@ BrowseSearchDir (DJFS* const self, const char* const sub_path,
 					     : h->criteria);
 	  const ContentDir_BrowseResult* res;
 	  DEVICE_LIST_CALL_SERVICE (res, devName, 
-				    CONTENT_DIR_SERVICE_TYPE,
+				    serType,
 				    ContentDir, Search,
 				    tmp_ctx, parent->id, full_criteria);
 	  if (res) {
 	    BROWSE_SUB (BrowseChildren (self, BROWSE_PTR, query,
-					tmp_ctx, devName, parent,
+					tmp_ctx, devName, serType, parent,
 					true, full_criteria,
 					res->children));
 	  }
@@ -183,7 +185,7 @@ BrowseSearchDir (DJFS* const self, const char* const sub_path,
 					 : new_criteria);
       const ContentDir_BrowseResult* res;
       DEVICE_LIST_CALL_SERVICE (res, devName, 
-				CONTENT_DIR_SERVICE_TYPE,
+				serType,
 				ContentDir, Search,
 				tmp_ctx, parent->id, full_criteria);
       // Do not create directory on empty result -> "No such file or directory"
@@ -209,7 +211,7 @@ BrowseSearchDir (DJFS* const self, const char* const sub_path,
 	  DIR_BEGIN (new_basename) {
 	    VFS_SET_TIME (h->time);
 	    BROWSE_SUB (BrowseChildren (self, BROWSE_PTR, query,
-					tmp_ctx, devName, parent,
+					tmp_ctx, devName, serType, parent,
 					true, full_criteria,
 					res->children));
 	  } DIR_END;
@@ -234,7 +236,8 @@ BrowseSearchDir (DJFS* const self, const char* const sub_path,
 static VFS_BrowseStatus
 BrowseChildren (DJFS* const self, const char* const sub_path,
 		const VFS_Query* const query, void* const tmp_ctx,
-		const char* const devName, const DIDLObject* const parent, 
+		const char* const devName, const char* const serType,
+		const DIDLObject* const parent, 
 		bool const searchable, const char* const search_criteria,
 		ContentDir_Children* const children)
 {
@@ -254,7 +257,7 @@ BrowseChildren (DJFS* const self, const char* const sub_path,
 	  DIR_BEGIN (o->basename) {
 	    const ContentDir_BrowseResult* res;
 	    DEVICE_LIST_CALL_SERVICE (res, devName,
-				      CONTENT_DIR_SERVICE_TYPE,
+				      serType,
 				      ContentDir, Browse,
 				      tmp_ctx, o->id,
 				      CONTENT_DIR_BROWSE_DIRECT_CHILDREN);
@@ -264,7 +267,7 @@ BrowseChildren (DJFS* const self, const char* const sub_path,
 	      // (might be confusing)
 	      BROWSE_SUB (BrowseChildren 
 			  (self, BROWSE_PTR, query, tmp_ctx, 
-			   devName, o,
+			   devName, serType, o,
 			   searchable && (search_criteria == NULL),
 			   NULL, res->children));
 	    }
@@ -314,20 +317,21 @@ BrowseChildren (DJFS* const self, const char* const sub_path,
       if (search_criteria == NULL) {
 	DIR_BEGIN ("_search") {
 	  BROWSE_SUB (BrowseSearchDir (self, BROWSE_PTR, query,
-				       tmp_ctx, devName, parent, NULL));
+				       tmp_ctx, devName, serType,
+				       parent, NULL));
 	} DIR_END;
       } else {
 	char criteria_start [strlen (search_criteria) + 9];
 	DIR_BEGIN ("_and") {
 	  sprintf (criteria_start, "(%s) and (", search_criteria);
 	  BROWSE_SUB (BrowseSearchDir (self, BROWSE_PTR, query,
-				       tmp_ctx, devName, parent, 
+				       tmp_ctx, devName, serType, parent, 
 				       criteria_start));
 	} DIR_END;
 	DIR_BEGIN ("_or") {
 	  sprintf (criteria_start, "(%s) or (", search_criteria);
 	  BROWSE_SUB (BrowseSearchDir (self, BROWSE_PTR, query,
-				       tmp_ctx, devName, parent, 
+				       tmp_ctx, devName, serType, parent, 
 				       criteria_start));
 	} DIR_END;
       }
@@ -370,6 +374,10 @@ BrowseRoot (VFS* const vfs, const char* const sub_path,
     
     const char* devName;
     PTR_ARRAY_FOR_EACH_PTR (names, devName) {
+      const char *serType = DeviceList_GetServiceType (tmp_ctx, devName,
+						       CONTENT_DIR1_SERVICE_TYPE,
+						       CONTENT_DIR2_SERVICE_TYPE,
+						       NULL);
       DIR_BEGIN (devName) {
 	if (self->flags & DJFS_SHOW_DEBUG) {
 	  SYMLINK_BEGIN (".status") {
@@ -382,7 +390,7 @@ BrowseRoot (VFS* const vfs, const char* const sub_path,
 	}
 	const ContentDir_BrowseResult* current = NULL;
 	DEVICE_LIST_CALL_SERVICE (current, devName, 
-				  CONTENT_DIR_SERVICE_TYPE,
+				  serType,
 				  ContentDir, Browse,
 				  tmp_ctx, "0", 
 				  CONTENT_DIR_BROWSE_METADATA);
@@ -391,7 +399,7 @@ BrowseRoot (VFS* const vfs, const char* const sub_path,
 	    PtrArray_GetHead (current->children->objects);
 	  if (root) {
 	    DEVICE_LIST_CALL_SERVICE (current, devName, 
-				      CONTENT_DIR_SERVICE_TYPE,
+				      serType,
 				      ContentDir, Browse,
 				      tmp_ctx, "0", 
 				      CONTENT_DIR_BROWSE_DIRECT_CHILDREN);
@@ -402,14 +410,14 @@ BrowseRoot (VFS* const vfs, const char* const sub_path,
 	      // though SearchCapabilities are empty)
 	      const char* caps = NULL;
 	      DEVICE_LIST_CALL_SERVICE (caps, devName, 
-					CONTENT_DIR_SERVICE_TYPE,
+					serType,
 					ContentDir, GetSearchCapabilities, 
 					NULL);
 	      searchable = (searchable && caps && *caps);
 	    }
 	    if (current && current->children) {
 	      BROWSE_SUB (BrowseChildren (self, BROWSE_PTR, query, tmp_ctx, 
-					  devName, root, searchable,
+					  devName, serType, root, searchable,
 					  NULL, current->children));
 	    }
 	  }
